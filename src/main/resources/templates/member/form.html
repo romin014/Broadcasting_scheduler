@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${memberId != null ? '멤버 수정' : '멤버 추가'}">멤버 추가</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2em;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .help-text {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 th:text="${memberId != null ? '멤버 수정' : '멤버 추가'}">멤버 추가</h1>
+        
+        <form th:action="${memberId != null ? '/member/edit/' + memberId : '/member/add'}" 
+              th:object="${member}" method="post">
+            <div class="form-group">
+                <label for="name">이름 *</label>
+                <input type="text" id="name" th:field="*{name}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="specialty">전문화 *</label>
+                <select id="specialty" th:field="*{specialty}" required>
+                    <option value="">선택하세요</option>
+                    <option th:each="spec : ${specialties}" 
+                            th:value="${spec.name()}" 
+                            th:text="${spec.name()}"></option>
+                </select>
+                <div class="help-text">
+                    - ALL: 모든 예배 가능<br>
+                    - WEEKDAY: 평일 예배만 가능<br>
+                    - SUNDAY: 주일 예배만 가능<br>
+                    - DAWN: 새벽 예배만 가능
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <a th:href="@{/member/list}" class="btn btn-secondary">취소</a>
+                <button type="submit" class="btn btn-primary" th:text="${memberId != null ? '수정' : '추가'}">추가</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

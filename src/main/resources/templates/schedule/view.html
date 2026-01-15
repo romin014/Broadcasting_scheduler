@@ -204,7 +204,10 @@
                 </form>
             </div>
             
-            <a th:href="@{/schedule/input(year=${year}, month=${month})}" class="btn btn-primary">새 스케줄 생성</a>
+            <div style="display: flex; gap: 10px;">
+                <a th:href="@{/member/list}" class="btn btn-secondary">멤버 관리</a>
+                <a th:href="@{/schedule/input(year=${year}, month=${month})}" class="btn btn-primary">새 스케줄 생성</a>
+            </div>
         </div>
         
         <div class="calendar">

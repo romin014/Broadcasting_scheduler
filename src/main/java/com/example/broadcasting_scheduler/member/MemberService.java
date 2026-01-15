@@ -57,4 +57,28 @@ public class MemberService {
         
         memberRepository.save(member);
     }
+
+    public MemberResponseDto getMemberById(Long id) {
+        Member member = memberRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Member not found"));
+        return new MemberResponseDto(member);
+    }
+
+    public MemberResponseDto updateMember(Long id, MemberRequestDto requestDto) {
+        Member member = memberRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Member not found"));
+        
+        member.setName(requestDto.getName());
+        member.setSpecialty(requestDto.getSpecialty());
+        
+        Member updated = memberRepository.save(member);
+        return new MemberResponseDto(updated);
+    }
+
+    public void deleteMember(Long id) {
+        if (!memberRepository.existsById(id)) {
+            throw new RuntimeException("Member not found");
+        }
+        memberRepository.deleteById(id);
+    }
 }

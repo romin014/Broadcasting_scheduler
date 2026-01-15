@@ -137,11 +137,21 @@
             font-size: 0.9em;
             color: #666;
         }
+        
+        .header-actions {
+            text-align: right;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>방송실 스케줄 입력</h1>
+        
+        <div class="header-actions">
+            <a th:href="@{/member/list}" class="btn btn-secondary">멤버 관리</a>
+            <a th:href="@{/schedule/view(year=${year}, month=${month})}" class="btn btn-secondary">스케줄 조회</a>
+        </div>
         
         <form th:action="@{/schedule/generate}" method="post" class="date-selector">
             <label>년도:</label>
