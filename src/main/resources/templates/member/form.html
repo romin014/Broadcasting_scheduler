@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,41 +11,41 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        
+
         .container {
             max-width: 600px;
             margin: 0 auto;
             background: white;
             border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
             padding: 30px;
         }
-        
+
         h1 {
             color: #333;
             margin-bottom: 30px;
             text-align: center;
             font-size: 2em;
         }
-        
+
         .form-group {
             margin-bottom: 20px;
         }
-        
+
         label {
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
             color: #555;
         }
-        
+
         input[type="text"],
         select {
             width: 100%;
@@ -54,19 +55,19 @@
             font-size: 16px;
             transition: border-color 0.3s;
         }
-        
+
         input[type="text"]:focus,
         select:focus {
             outline: none;
             border-color: #667eea;
         }
-        
+
         .btn-group {
             display: flex;
             gap: 10px;
             margin-top: 30px;
         }
-        
+
         .btn {
             flex: 1;
             padding: 12px 25px;
@@ -80,26 +81,26 @@
             text-align: center;
             display: inline-block;
         }
-        
+
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-        
+
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
-        
+
         .btn-secondary {
             background: #6c757d;
             color: white;
         }
-        
+
         .btn-secondary:hover {
             background: #5a6268;
         }
-        
+
         .help-text {
             font-size: 0.9em;
             color: #666;
@@ -107,33 +108,117 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1 th:text="${memberId != null ? '멤버 수정' : '멤버 추가'}">멤버 추가</h1>
-        
-        <form th:action="${memberId != null ? '/member/edit/' + memberId : '/member/add'}" 
-              th:object="${member}" method="post">
+
+        <form th:action="${memberId != null ? '/member/edit/' + memberId : '/member/add'}" th:object="${member}"
+            method="post">
             <div class="form-group">
                 <label for="name">이름 *</label>
                 <input type="text" id="name" th:field="*{name}" required>
             </div>
-            
-            <div class="form-group">
-                <label for="specialty">전문화 *</label>
-                <select id="specialty" th:field="*{specialty}" required>
-                    <option value="">선택하세요</option>
-                    <option th:each="spec : ${specialties}" 
-                            th:value="${spec.name()}" 
-                            th:text="${spec.name()}"></option>
-                </select>
-                <div class="help-text">
-                    - ALL: 모든 예배 가능<br>
-                    - WEEKDAY: 평일 예배만 가능<br>
-                    - SUNDAY: 주일 예배만 가능<br>
-                    - DAWN: 새벽 예배만 가능
-                </div>
+
+            <div class="form-group" style="margin-top: 30px;">
+                <label style="font-size: 1.1em; display: block; margin-bottom: 15px;">요일별 설정 *</label>
+                <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">
+                    각 요일별로 참여 가능한 예배 유형을 선택하세요.
+                </p>
+                <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+                    <thead>
+                        <tr style="background: #e8eaf6; border-bottom: 2px solid #667eea;">
+                            <th style="padding: 10px; text-align: left;">요일</th>
+                            <th style="padding: 10px; text-align: center;">📅 평일 예배</th>
+                            <th style="padding: 10px; text-align: center;">🌅 새벽 예배</th>
+                            <th style="padding: 10px; text-align: center;">✨ 주일 1부</th>
+                            <th style="padding: 10px; text-align: center;">✨ 주일 2부</th>
+                            <th style="padding: 10px; text-align: center;">✨ 주일 3부</th>
+                        </tr>
+                    </thead>
+                    <tbody th:if="${availabilityList != null}">
+                        <tr th:each="availability : ${availabilityList}" style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 10px; font-weight: 600;"
+                                th:text="${daysOfWeek[availability.dayOfWeek - 1]}"></td>
+                            <td style="padding: 10px; text-align: center;">
+                                <input type="checkbox" th:id="|day${availability.dayOfWeek}_weekday|"
+                                    th:name="|day${availability.dayOfWeek}_weekday|"
+                                    th:checked="${availability.weekdayEnabled}"
+                                    style="width: 20px; height: 20px; cursor: pointer;">
+                            </td>
+                            <td style="padding: 10px; text-align: center;">
+                                <input type="checkbox" th:id="|day${availability.dayOfWeek}_dawn|"
+                                    th:name="|day${availability.dayOfWeek}_dawn|"
+                                    th:checked="${availability.dawnEnabled}"
+                                    style="width: 20px; height: 20px; cursor: pointer;">
+                            </td>
+                            <td style="padding: 10px; text-align: center;">
+                                <input type="checkbox" th:id="|day${availability.dayOfWeek}_sunday1|"
+                                    th:name="|day${availability.dayOfWeek}_sunday1|"
+                                    th:checked="${availability.sunday1Enabled}"
+                                    style="width: 20px; height: 20px; cursor: pointer;">
+                            </td>
+                            <td style="padding: 10px; text-align: center;">
+                                <input type="checkbox" th:id="|day${availability.dayOfWeek}_sunday2|"
+                                    th:name="|day${availability.dayOfWeek}_sunday2|"
+                                    th:checked="${availability.sunday2Enabled}"
+                                    style="width: 20px; height: 20px; cursor: pointer;">
+                            </td>
+                            <td style="padding: 10px; text-align: center;">
+                                <input type="checkbox" th:id="|day${availability.dayOfWeek}_sunday3|"
+                                    th:name="|day${availability.dayOfWeek}_sunday3|"
+                                    th:checked="${availability.sunday3Enabled}"
+                                    style="width: 20px; height: 20px; cursor: pointer;">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const MONDAY = 1, TUESDAY = 2, WEDNESDAY = 3, THURSDAY = 4, FRIDAY = 5, SATURDAY = 6, SUNDAY = 7;
+
+                    const availableWorship = {
+                        [MONDAY]: { weekday: true, dawn: true, sunday1: false, sunday2: false, sunday3: false },
+                        [TUESDAY]: { weekday: true, dawn: true, sunday1: false, sunday2: false, sunday3: false },
+                        [WEDNESDAY]: { weekday: true, dawn: true, sunday1: false, sunday2: false, sunday3: false },
+                        [THURSDAY]: { weekday: true, dawn: true, sunday1: false, sunday2: false, sunday3: false },
+                        [FRIDAY]: { weekday: true, dawn: true, sunday1: false, sunday2: false, sunday3: false },
+                        [SATURDAY]: { weekday: true, dawn: false, sunday1: false, sunday2: false, sunday3: false },
+                        [SUNDAY]: { weekday: false, dawn: false, sunday1: true, sunday2: true, sunday3: true }
+                    };
+
+                    document.querySelectorAll('table tbody tr').forEach(row => {
+                        const dayText = row.querySelector('td').textContent.trim();
+                        const daysOfWeek = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
+                        const dayOfWeek = daysOfWeek.indexOf(dayText) + 1;
+
+                        const tds = row.querySelectorAll('td:not(:first-child)');
+                        const checkboxes = {
+                            weekday: tds[0].querySelector('input'),
+                            dawn: tds[1].querySelector('input'),
+                            sunday1: tds[2].querySelector('input'),
+                            sunday2: tds[3].querySelector('input'),
+                            sunday3: tds[4].querySelector('input')
+                        };
+
+                        const allowed = availableWorship[dayOfWeek];
+
+                        checkboxes.weekday.disabled = !allowed.weekday;
+                        checkboxes.dawn.disabled = !allowed.dawn;
+                        checkboxes.sunday1.disabled = !allowed.sunday1;
+                        checkboxes.sunday2.disabled = !allowed.sunday2;
+                        checkboxes.sunday3.disabled = !allowed.sunday3;
+
+                        if (!allowed.weekday && checkboxes.weekday.checked) checkboxes.weekday.checked = false;
+                        if (!allowed.dawn && checkboxes.dawn.checked) checkboxes.dawn.checked = false;
+                        if (!allowed.sunday1 && checkboxes.sunday1.checked) checkboxes.sunday1.checked = false;
+                        if (!allowed.sunday2 && checkboxes.sunday2.checked) checkboxes.sunday2.checked = false;
+                        if (!allowed.sunday3 && checkboxes.sunday3.checked) checkboxes.sunday3.checked = false;
+                    });
+                });
+            </script>
+
             <div class="btn-group">
                 <a th:href="@{/member/list}" class="btn btn-secondary">취소</a>
                 <button type="submit" class="btn btn-primary" th:text="${memberId != null ? '수정' : '추가'}">추가</button>
@@ -141,4 +226,5 @@
         </form>
     </div>
 </body>
+
 </html>

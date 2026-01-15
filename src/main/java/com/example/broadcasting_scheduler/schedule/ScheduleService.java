@@ -46,7 +46,8 @@ public class ScheduleService {
     /**
      * 기존 스케줄 삭제 후 새로 생성
      */
-    public void generateMonthlySchedule(int year, int month, Map<Long, Map<String, Boolean>> memberAvailability, Map<Integer, Map<String, Boolean>> dayOfWeekSettings, Map<String, Boolean> sundaySettings) {
+    public void generateMonthlySchedule(int year, int month, Map<Long, Map<String, Boolean>> memberAvailability,
+            Map<Integer, Map<String, Boolean>> dayOfWeekSettings, Map<String, Boolean> sundaySettings) {
         // 전월 통계 업데이트
         statsService.updateLastMonthCounts(year, month);
 
@@ -63,14 +64,14 @@ public class ScheduleService {
             for (Map.Entry<Long, Map<String, Boolean>> entry : memberAvailability.entrySet()) {
                 Long memberId = entry.getKey();
                 Map<String, Boolean> availability = entry.getValue();
-                
+
                 Member member = memberRepository.findById(memberId).orElse(null);
                 if (member != null) {
                     // Specialty 업데이트
                     boolean canWeekday = availability.getOrDefault("weekday", true);
                     boolean canSunday = availability.getOrDefault("sunday", true);
                     boolean canDawn = availability.getOrDefault("dawn", true);
-                    
+
                     if (canWeekday && canSunday && canDawn) {
                         member.setSpecialty(Specialty.ALL);
                     } else if (canWeekday) {
@@ -98,9 +99,9 @@ public class ScheduleService {
                 Map<String, Boolean> settings = entry.getValue();
                 boolean weekdayEnabled = settings.getOrDefault("weekday", true);
                 boolean dawnEnabled = settings.getOrDefault("dawn", true);
-                
+
                 DayOfWeekSetting setting = dayOfWeekSettingRepository.findByDayOfWeek(dayOfWeek)
-                    .orElse(new DayOfWeekSetting(dayOfWeek, weekdayEnabled, dawnEnabled));
+                        .orElse(new DayOfWeekSetting(dayOfWeek, weekdayEnabled, dawnEnabled));
                 setting.setWeekdayEnabled(weekdayEnabled);
                 setting.setDawnEnabled(dawnEnabled);
                 dayOfWeekSettingRepository.save(setting);
@@ -112,9 +113,9 @@ public class ScheduleService {
             boolean sunday1Enabled = sundaySettings.getOrDefault("sunday1", true);
             boolean sunday2Enabled = sundaySettings.getOrDefault("sunday2", true);
             boolean sunday3Enabled = sundaySettings.getOrDefault("sunday3", true);
-            
+
             SundaySetting setting = sundaySettingRepository.findFirstByOrderByIdAsc()
-                .orElse(new SundaySetting(sunday1Enabled, sunday2Enabled, sunday3Enabled));
+                    .orElse(new SundaySetting(sunday1Enabled, sunday2Enabled, sunday3Enabled));
             setting.setSunday1Enabled(sunday1Enabled);
             setting.setSunday2Enabled(sunday2Enabled);
             setting.setSunday3Enabled(sunday3Enabled);
@@ -124,22 +125,26 @@ public class ScheduleService {
         // 스케줄 생성
         for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
             for (WorshipType worshipType : getWorshipTypes(date)) {
-                Member selected = selectMember(
-                        date,
-                        worshipType,
-                        members,
-                        currentCount,
-                        memberAvailability);
+                int slots = getSlotCountFor(worshipType);
+                java.util.Set<Long> selectedThisSlot = new java.util.HashSet<>();
 
-                if (selected == null)
-                    continue;
+                for (int s = 0; s < slots; s++) {
+                    Member selected = selectMember(
+                            date,
+                            worshipType,
+                            members,
+                            currentCount,
+                            memberAvailability,
+                            selectedThisSlot);
 
-                scheduleRepository.save(
-                        new Schedule(date, worshipType, selected));
+                    if (selected == null)
+                        break;
 
-                currentCount.put(
-                        selected.getId(),
-                        currentCount.get(selected.getId()) + 1);
+                    scheduleRepository.save(new Schedule(date, worshipType, selected));
+
+                    currentCount.put(selected.getId(), currentCount.get(selected.getId()) + 1);
+                    selectedThisSlot.add(selected.getId());
+                }
             }
         }
 
@@ -159,12 +164,12 @@ public class ScheduleService {
     private List<WorshipType> getWorshipTypes(LocalDate date) {
         DayOfWeek dayOfWeek = date.getDayOfWeek();
         int dayOfWeekValue = dayOfWeek.getValue(); // 1=월요일, 7=일요일
-        
+
         // 일요일은 주일 예배 1부, 2부, 3부
         if (dayOfWeekValue == 7) {
             SundaySetting setting = sundaySettingRepository.findFirstByOrderByIdAsc()
-                .orElse(new SundaySetting(true, true, true)); // 기본값: 모두 활성화
-            
+                    .orElse(new SundaySetting(true, true, true)); // 기본값: 모두 활성화
+
             List<WorshipType> types = new java.util.ArrayList<>();
             if (setting.isSunday1Enabled()) {
                 types.add(WorshipType.SUNDAY_1);
@@ -177,11 +182,11 @@ public class ScheduleService {
             }
             return types;
         }
-        
+
         // 요일별 설정 확인
         DayOfWeekSetting setting = dayOfWeekSettingRepository.findByDayOfWeek(dayOfWeekValue)
-            .orElse(new DayOfWeekSetting(dayOfWeekValue, true, true)); // 기본값: 모두 활성화
-        
+                .orElse(new DayOfWeekSetting(dayOfWeekValue, true, true)); // 기본값: 모두 활성화
+
         List<WorshipType> types = new java.util.ArrayList<>();
         if (setting.isWeekdayEnabled()) {
             types.add(WorshipType.WEEKDAY);
@@ -189,8 +194,24 @@ public class ScheduleService {
         if (setting.isDawnEnabled()) {
             types.add(WorshipType.DAWN);
         }
-        
+
         return types;
+    }
+
+    private int getSlotCountFor(WorshipType worshipType) {
+        switch (worshipType) {
+            case WEEKDAY:
+                return 2;
+            case SUNDAY_1:
+                return 2;
+            case SUNDAY_2:
+                return 2;
+            case SUNDAY_3:
+                return 3;
+            case DAWN:
+            default:
+                return 1;
+        }
     }
 
     private Member selectMember(
@@ -198,11 +219,13 @@ public class ScheduleService {
             WorshipType worshipType,
             List<Member> members,
             Map<Long, Integer> currentCount,
-            Map<Long, Map<String, Boolean>> memberAvailability) {
+            Map<Long, Map<String, Boolean>> memberAvailability,
+            java.util.Set<Long> excludedMemberIds) {
 
         int dayOfWeek = date.getDayOfWeek().getValue(); // 1=월요일, 7=일요일
-        
+
         List<Member> availableMembers = members.stream()
+                .filter(m -> (excludedMemberIds == null || !excludedMemberIds.contains(m.getId())))
                 .filter(m -> canServe(m, date, dayOfWeek, worshipType, memberAvailability))
                 .collect(Collectors.toList());
 
@@ -220,10 +243,12 @@ public class ScheduleService {
                 .orElse(null);
     }
 
-    private boolean canServe(Member member, LocalDate date, int dayOfWeek, WorshipType worshipType, Map<Long, Map<String, Boolean>> memberAvailability) {
+    private boolean canServe(Member member, LocalDate date, int dayOfWeek, WorshipType worshipType,
+            Map<Long, Map<String, Boolean>> memberAvailability) {
         // 멤버별 요일별 가용성 확인
-        MemberAvailability memberAvail = memberAvailabilityRepository.findByMemberAndDayOfWeek(member, dayOfWeek).orElse(null);
-        
+        MemberAvailability memberAvail = memberAvailabilityRepository.findByMemberAndDayOfWeek(member, dayOfWeek)
+                .orElse(null);
+
         if (memberAvail != null) {
             // 요일별 가용성 설정이 있으면 확인
             if (worshipType == WorshipType.WEEKDAY && !memberAvail.isWeekdayEnabled()) {
@@ -248,8 +273,9 @@ public class ScheduleService {
                 if (worshipType == WorshipType.WEEKDAY && !availability.getOrDefault("weekday", true)) {
                     return false;
                 }
-                if ((worshipType == WorshipType.SUNDAY_1 || worshipType == WorshipType.SUNDAY_2 || worshipType == WorshipType.SUNDAY_3) 
-                    && !availability.getOrDefault("sunday", true)) {
+                if ((worshipType == WorshipType.SUNDAY_1 || worshipType == WorshipType.SUNDAY_2
+                        || worshipType == WorshipType.SUNDAY_3)
+                        && !availability.getOrDefault("sunday", true)) {
                     return false;
                 }
                 if (worshipType == WorshipType.DAWN && !availability.getOrDefault("dawn", true)) {
@@ -266,7 +292,8 @@ public class ScheduleService {
 
         if (s == Specialty.WEEKDAY && worshipType == WorshipType.WEEKDAY)
             return true;
-        if (s == Specialty.SUNDAY && (worshipType == WorshipType.SUNDAY_1 || worshipType == WorshipType.SUNDAY_2 || worshipType == WorshipType.SUNDAY_3))
+        if (s == Specialty.SUNDAY && (worshipType == WorshipType.SUNDAY_1 || worshipType == WorshipType.SUNDAY_2
+                || worshipType == WorshipType.SUNDAY_3))
             return true;
         if (s == Specialty.DAWN && worshipType == WorshipType.DAWN)
             return true;

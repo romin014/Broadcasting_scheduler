@@ -236,38 +236,9 @@
             </table>
 
             <h2 style="margin-top: 30px; margin-bottom: 15px; color: #555; font-size: 1.3em;">멤버별 가용성 설정</h2>
-
-            <!-- 기본 가용성 설정 -->
-            <table style="margin-bottom: 20px;">
-                <thead>
-                    <tr>
-                        <th>이름</th>
-                        <th class="checkbox-cell">평일 예배</th>
-                        <th class="checkbox-cell">주일 예배</th>
-                        <th class="checkbox-cell">새벽 예배</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="member : ${members}">
-                        <td class="member-name" th:text="${member.name}"></td>
-                        <td class="checkbox-cell">
-                            <input type="checkbox" th:name="'availability_' + ${member.id} + '_weekday'"
-                                th:id="'avail_weekday_' + ${member.id}" checked>
-                        </td>
-                        <td class="checkbox-cell">
-                            <input type="checkbox" th:name="'availability_' + ${member.id} + '_sunday'"
-                                th:id="'avail_sunday_' + ${member.id}" checked>
-                        </td>
-                        <td class="checkbox-cell">
-                            <input type="checkbox" th:name="'availability_' + ${member.id} + '_dawn'"
-                                th:id="'avail_dawn_' + ${member.id}" checked>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <p style="color: #666; font-size: 0.95em; margin-bottom: 20px;">
-                💡 <strong>팁:</strong> 멤버별 요일별 상세 설정은 <a th:href="@{/member/list}"
+            <p
+                style="color: #666; font-size: 0.95em; margin-bottom: 20px; background: #f0f7ff; padding: 15px; border-radius: 5px;">
+                💡 <strong>안내:</strong> 멤버별 요일별 상세 설정은 <a th:href="@{/member/list}"
                     style="color: #667eea; text-decoration: underline;">멤버 관리</a>에서 각 멤버의 "⚙️ 요일별 설정" 버튼을 클릭하여 설정할 수
                 있습니다.
             </p>

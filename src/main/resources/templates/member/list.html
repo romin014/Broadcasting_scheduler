@@ -134,26 +134,6 @@
             font-weight: 600;
         }
 
-        .specialty-ALL {
-            background: #667eea;
-            color: white;
-        }
-
-        .specialty-WEEKDAY {
-            background: #e3f2fd;
-            color: #1976d2;
-        }
-
-        .specialty-SUNDAY {
-            background: #fff3e0;
-            color: #f57c00;
-        }
-
-        .specialty-DAWN {
-            background: #f3e5f5;
-            color: #7b1fa2;
-        }
-
         .empty-message {
             text-align: center;
             padding: 40px;
@@ -178,7 +158,6 @@
                 <tr>
                     <th>번호</th>
                     <th>이름</th>
-                    <th>전문화</th>
                     <th>전월 배정 횟수</th>
                     <th>작업</th>
                 </tr>
@@ -190,10 +169,6 @@
                 <tr th:each="member, iterStat : ${members}">
                     <td th:text="${iterStat.count}"></td>
                     <td th:text="${member.name}"></td>
-                    <td>
-                        <span th:class="'specialty-badge specialty-' + ${member.specialty.name()}"
-                            th:text="${member.specialty.name()}"></span>
-                    </td>
                     <td th:text="${member.lastMonthCount}"></td>
                     <td>
                         <div class="actions">

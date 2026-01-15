@@ -174,7 +174,82 @@
         .header-actions a:hover {
             background: #764ba2;
         }
+
+        .checkbox-cell input[type="checkbox"]:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .checkbox-cell input[type="checkbox"]:disabled+label {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
     </style>
+    <script>
+        function updateCheckboxAvailability() {
+            // 요일 설정: 1=월, 2=화, 3=수, 4=목, 5=금, 6=토, 7=일
+            const MONDAY = 1, TUESDAY = 2, WEDNESDAY = 3, THURSDAY = 4, FRIDAY = 5, SATURDAY = 6, SUNDAY = 7;
+
+            // 각 요일별로 선택 가능한 예배 타입 정의
+            const availableWorship = {
+                // 평일 예배: 월화수목금토
+                [MONDAY]: { weekday: true, dawn: true, sunday1: false, sunday2: false, sunday3: false },
+                [TUESDAY]: { weekday: true, dawn: true, sunday1: false, sunday2: false, sunday3: false },
+                [WEDNESDAY]: { weekday: true, dawn: true, sunday1: false, sunday2: false, sunday3: false },
+                [THURSDAY]: { weekday: true, dawn: true, sunday1: false, sunday2: false, sunday3: false },
+                [FRIDAY]: { weekday: true, dawn: true, sunday1: false, sunday2: false, sunday3: false },
+                [SATURDAY]: { weekday: true, dawn: false, sunday1: false, sunday2: false, sunday3: false },
+                // 주일: 주일 1부, 2부, 3부만
+                [SUNDAY]: { weekday: false, dawn: false, sunday1: true, sunday2: true, sunday3: true }
+            };
+
+            // 모든 행에 대해 체크박스 상태 업데이트
+            document.querySelectorAll('tbody tr').forEach(row => {
+                // 요일 텍스트에서 요일 번호 추출
+                const dayText = row.querySelector('.day-column').textContent.trim();
+                const daysOfWeek = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
+                const dayOfWeek = daysOfWeek.indexOf(dayText) + 1;
+
+                const tds = row.querySelectorAll('td.checkbox-cell');
+                const checkboxes = {
+                    weekday: tds[0].querySelector('input[type="checkbox"]'),
+                    dawn: tds[1].querySelector('input[type="checkbox"]'),
+                    sunday1: tds[2].querySelector('input[type="checkbox"]'),
+                    sunday2: tds[3].querySelector('input[type="checkbox"]'),
+                    sunday3: tds[4].querySelector('input[type="checkbox"]')
+                };
+
+                const allowed = availableWorship[dayOfWeek];
+
+                // 각 체크박스의 disabled 상태 설정
+                checkboxes.weekday.disabled = !allowed.weekday;
+                checkboxes.dawn.disabled = !allowed.dawn;
+                checkboxes.sunday1.disabled = !allowed.sunday1;
+                checkboxes.sunday2.disabled = !allowed.sunday2;
+                checkboxes.sunday3.disabled = !allowed.sunday3;
+
+                // 사용 불가능한 항목은 체크 해제
+                if (!allowed.weekday && checkboxes.weekday.checked) {
+                    checkboxes.weekday.checked = false;
+                }
+                if (!allowed.dawn && checkboxes.dawn.checked) {
+                    checkboxes.dawn.checked = false;
+                }
+                if (!allowed.sunday1 && checkboxes.sunday1.checked) {
+                    checkboxes.sunday1.checked = false;
+                }
+                if (!allowed.sunday2 && checkboxes.sunday2.checked) {
+                    checkboxes.sunday2.checked = false;
+                }
+                if (!allowed.sunday3 && checkboxes.sunday3.checked) {
+                    checkboxes.sunday3.checked = false;
+                }
+            });
+        }
+
+        // 페이지 로드 시 실행
+        document.addEventListener('DOMContentLoaded', updateCheckboxAvailability);
+    </script>
 </head>
 
 <body>

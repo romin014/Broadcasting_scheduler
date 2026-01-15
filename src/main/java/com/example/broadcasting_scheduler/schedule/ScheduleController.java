@@ -112,23 +112,6 @@ public class ScheduleController {
             @RequestParam int month,
             @RequestParam Map<String, String> allParams,
             Model model) {
-        // 폼 데이터에서 가용성 정보 추출
-        Map<Long, Map<String, Boolean>> memberAvailability = new HashMap<>();
-
-        List<MemberResponseDto> members = memberService.getAllMembers();
-        for (MemberResponseDto member : members) {
-            Map<String, Boolean> availability = new HashMap<>();
-            String weekdayKey = "availability_" + member.getId() + "_weekday";
-            String sundayKey = "availability_" + member.getId() + "_sunday";
-            String dawnKey = "availability_" + member.getId() + "_dawn";
-
-            availability.put("weekday", "on".equals(allParams.get(weekdayKey)));
-            availability.put("sunday", "on".equals(allParams.get(sundayKey)));
-            availability.put("dawn", "on".equals(allParams.get(dawnKey)));
-
-            memberAvailability.put(member.getId(), availability);
-        }
-
         // 요일별 설정 추출 (1=월요일, 2=화요일, ..., 6=토요일)
         Map<Integer, Map<String, Boolean>> dayOfWeekSettings = new HashMap<>();
         for (int day = 1; day <= 6; day++) { // 월요일부터 토요일까지
@@ -148,7 +131,7 @@ public class ScheduleController {
         sundaySettings.put("sunday3", "on".equals(allParams.get("sunday_3")));
 
         // 스케줄 생성
-        scheduleService.generateMonthlySchedule(year, month, memberAvailability, dayOfWeekSettings, sundaySettings);
+        scheduleService.generateMonthlySchedule(year, month, null, dayOfWeekSettings, sundaySettings);
 
         return "redirect:/schedule/view?year=" + year + "&month=" + month;
     }
@@ -174,7 +157,14 @@ public class ScheduleController {
         for (ScheduleResponseDto dto : scheduleDtos) {
             String dateKey = dto.getDate().toString();
             calendarData.putIfAbsent(dateKey, new HashMap<>());
-            calendarData.get(dateKey).put(dto.getWorshipType().name(), dto.getMemberName());
+            Map<String, String> dayMap = calendarData.get(dateKey);
+            String key = dto.getWorshipType().name();
+            String existing = dayMap.get(key);
+            if (existing == null || existing.isEmpty()) {
+                dayMap.put(key, dto.getMemberName());
+            } else {
+                dayMap.put(key, existing + ", " + dto.getMemberName());
+            }
         }
 
         LocalDate start = LocalDate.of(year, month, 1);
