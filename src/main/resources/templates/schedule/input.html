@@ -142,6 +142,25 @@
             text-align: right;
             margin-bottom: 20px;
         }
+        
+        .btn-detail {
+            padding: 5px 15px;
+            font-size: 12px;
+            background: #17a2b8;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .btn-detail:hover {
+            background: #138496;
+        }
+        
+        input[type="checkbox"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -186,14 +205,53 @@
                 </tbody>
             </table>
             
+            <h2 style="margin-top: 30px; margin-bottom: 15px; color: #555; font-size: 1.3em;">주일 예배 설정</h2>
+            <table style="margin-bottom: 30px;">
+                <thead>
+                    <tr>
+                        <th>예배</th>
+                        <th class="checkbox-cell">활성화</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="member-name">주일 1부</td>
+                        <td class="checkbox-cell">
+                            <input type="checkbox" 
+                                   name="sunday_1"
+                                   th:checked="${sundaySetting.sunday1Enabled}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="member-name">주일 2부</td>
+                        <td class="checkbox-cell">
+                            <input type="checkbox" 
+                                   name="sunday_2"
+                                   th:checked="${sundaySetting.sunday2Enabled}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="member-name">주일 3부</td>
+                        <td class="checkbox-cell">
+                            <input type="checkbox" 
+                                   name="sunday_3"
+                                   th:checked="${sundaySetting.sunday3Enabled}">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
             <h2 style="margin-top: 30px; margin-bottom: 15px; color: #555; font-size: 1.3em;">멤버별 가용성 설정</h2>
-            <table>
+            
+            <!-- 기본 가용성 설정 -->
+            <table style="margin-bottom: 20px;">
                 <thead>
                     <tr>
                         <th>이름</th>
                         <th class="checkbox-cell">평일 예배</th>
                         <th class="checkbox-cell">주일 예배</th>
                         <th class="checkbox-cell">새벽 예배</th>
+                        <th class="checkbox-cell">요일별 설정</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -202,21 +260,82 @@
                         <td class="checkbox-cell">
                             <input type="checkbox" 
                                    th:name="'availability_' + ${member.id} + '_weekday'"
+                                   th:id="'avail_weekday_' + ${member.id}"
                                    checked>
                         </td>
                         <td class="checkbox-cell">
                             <input type="checkbox" 
                                    th:name="'availability_' + ${member.id} + '_sunday'"
+                                   th:id="'avail_sunday_' + ${member.id}"
                                    checked>
                         </td>
                         <td class="checkbox-cell">
                             <input type="checkbox" 
                                    th:name="'availability_' + ${member.id} + '_dawn'"
+                                   th:id="'avail_dawn_' + ${member.id}"
                                    checked>
+                        </td>
+                        <td class="checkbox-cell">
+                            <button type="button" 
+                                    class="btn-detail"
+                                    th:onclick="'toggleDetail(' + ${member.id} + ')'"
+                                    th:id="'btn_' + ${member.id}">상세 설정</button>
                         </td>
                     </tr>
                 </tbody>
             </table>
+            
+            <!-- 멤버별 요일별 상세 설정 (접을 수 있음) -->
+            <div th:each="member : ${members}" 
+                 th:id="'detail_' + ${member.id}"
+                 style="display: none; margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                <h3 style="margin-bottom: 15px; color: #333;" th:text="${member.name + ' - 요일별 상세 설정'}"></h3>
+                <table style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>요일</th>
+                            <th class="checkbox-cell">평일 예배</th>
+                            <th class="checkbox-cell">새벽 예배</th>
+                            <th class="checkbox-cell">주일 1부</th>
+                            <th class="checkbox-cell">주일 2부</th>
+                            <th class="checkbox-cell">주일 3부</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="day : ${#numbers.sequence(1, 7)}">
+                            <td class="member-name" th:text="${day == 7 ? '일요일' : dayNames.get(day)}"></td>
+                            <td class="checkbox-cell">
+                                <input type="checkbox" 
+                                       th:name="'member_' + ${member.id} + '_day_' + ${day} + '_weekday'"
+                                       th:checked="${memberAvailabilities.get(member.id) != null and memberAvailabilities.get(member.id).get(day) != null ? memberAvailabilities.get(member.id).get(day).weekdayEnabled : (day != 7)}">
+                            </td>
+                            <td class="checkbox-cell">
+                                <input type="checkbox" 
+                                       th:name="'member_' + ${member.id} + '_day_' + ${day} + '_dawn'"
+                                       th:checked="${memberAvailabilities.get(member.id) != null and memberAvailabilities.get(member.id).get(day) != null ? memberAvailabilities.get(member.id).get(day).dawnEnabled : (day != 7)}">
+                            </td>
+                            <td class="checkbox-cell">
+                                <input type="checkbox" 
+                                       th:name="'member_' + ${member.id} + '_day_' + ${day} + '_sunday1'"
+                                       th:checked="${memberAvailabilities.get(member.id) != null and memberAvailabilities.get(member.id).get(day) != null ? memberAvailabilities.get(member.id).get(day).sunday1Enabled : (day == 7)}"
+                                       th:disabled="${day != 7}">
+                            </td>
+                            <td class="checkbox-cell">
+                                <input type="checkbox" 
+                                       th:name="'member_' + ${member.id} + '_day_' + ${day} + '_sunday2'"
+                                       th:checked="${memberAvailabilities.get(member.id) != null and memberAvailabilities.get(member.id).get(day) != null ? memberAvailabilities.get(member.id).get(day).sunday2Enabled : (day == 7)}"
+                                       th:disabled="${day != 7}">
+                            </td>
+                            <td class="checkbox-cell">
+                                <input type="checkbox" 
+                                       th:name="'member_' + ${member.id} + '_day_' + ${day} + '_sunday3'"
+                                       th:checked="${memberAvailabilities.get(member.id) != null and memberAvailabilities.get(member.id).get(day) != null ? memberAvailabilities.get(member.id).get(day).sunday3Enabled : (day == 7)}"
+                                       th:disabled="${day != 7}">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
             
             <div class="btn-group">
                 <button type="submit" class="btn btn-primary">스케줄 생성</button>
@@ -224,5 +343,20 @@
             </div>
         </form>
     </div>
+    
+    <script>
+        function toggleDetail(memberId) {
+            const detailDiv = document.getElementById('detail_' + memberId);
+            const btn = document.getElementById('btn_' + memberId);
+            
+            if (detailDiv.style.display === 'none') {
+                detailDiv.style.display = 'block';
+                btn.textContent = '접기';
+            } else {
+                detailDiv.style.display = 'none';
+                btn.textContent = '상세 설정';
+            }
+        }
+    </script>
 </body>
 </html>

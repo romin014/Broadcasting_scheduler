@@ -43,15 +43,19 @@ public class MemberService {
             .orElseThrow(() -> new RuntimeException("Member not found"));
         
         // Specialty는 availability에 따라 자동 설정
-        if (availability.get(WorshipType.WEEKDAY) && 
-            availability.get(WorshipType.SUNDAY) && 
-            availability.get(WorshipType.DAWN)) {
+        boolean canWeekday = availability.getOrDefault(WorshipType.WEEKDAY, true);
+        boolean canSunday = availability.getOrDefault(WorshipType.SUNDAY_1, true) || 
+                            availability.getOrDefault(WorshipType.SUNDAY_2, true) || 
+                            availability.getOrDefault(WorshipType.SUNDAY_3, true);
+        boolean canDawn = availability.getOrDefault(WorshipType.DAWN, true);
+        
+        if (canWeekday && canSunday && canDawn) {
             member.setSpecialty(Specialty.ALL);
-        } else if (availability.get(WorshipType.WEEKDAY)) {
+        } else if (canWeekday) {
             member.setSpecialty(Specialty.WEEKDAY);
-        } else if (availability.get(WorshipType.SUNDAY)) {
+        } else if (canSunday) {
             member.setSpecialty(Specialty.SUNDAY);
-        } else if (availability.get(WorshipType.DAWN)) {
+        } else if (canDawn) {
             member.setSpecialty(Specialty.DAWN);
         }
         

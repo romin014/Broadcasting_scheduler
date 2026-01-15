@@ -134,9 +134,19 @@
             color: #1976d2;
         }
         
-        .worship-sunday {
+        .worship-sunday_1 {
             background: #fff3e0;
             color: #f57c00;
+        }
+        
+        .worship-sunday_2 {
+            background: #ffe0b2;
+            color: #e65100;
+        }
+        
+        .worship-sunday_3 {
+            background: #ffcc80;
+            color: #bf360c;
         }
         
         .worship-dawn {
@@ -234,7 +244,9 @@
                          th:if="${calendarData.get(dateInfo.dateKey).containsKey(worshipType.name())}"
                          th:class="${'worship-item worship-' + worshipType.name().toLowerCase()}">
                         <span th:if="${worshipType.name() == 'WEEKDAY'}">평일: </span>
-                        <span th:if="${worshipType.name() == 'SUNDAY'}">주일: </span>
+                        <span th:if="${worshipType.name() == 'SUNDAY_1'}">주일 1부: </span>
+                        <span th:if="${worshipType.name() == 'SUNDAY_2'}">주일 2부: </span>
+                        <span th:if="${worshipType.name() == 'SUNDAY_3'}">주일 3부: </span>
                         <span th:if="${worshipType.name() == 'DAWN'}">새벽: </span>
                         <span th:text="${calendarData.get(dateInfo.dateKey).get(worshipType.name())}"></span>
                     </div>
