@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,35 +11,35 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
             background: white;
             border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
             padding: 30px;
         }
-        
+
         h1 {
             color: #333;
             margin-bottom: 30px;
             text-align: center;
             font-size: 2em;
         }
-        
+
         .header-actions {
             text-align: right;
             margin-bottom: 20px;
         }
-        
+
         .btn {
             padding: 10px 25px;
             font-size: 14px;
@@ -51,80 +52,80 @@
             display: inline-block;
             margin-left: 10px;
         }
-        
+
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-        
+
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
-        
+
         .btn-secondary {
             background: #6c757d;
             color: white;
         }
-        
+
         .btn-secondary:hover {
             background: #5a6268;
         }
-        
+
         .btn-danger {
             background: #dc3545;
             color: white;
             padding: 5px 15px;
             font-size: 12px;
         }
-        
+
         .btn-danger:hover {
             background: #c82333;
         }
-        
+
         .btn-edit {
             background: #28a745;
             color: white;
             padding: 5px 15px;
             font-size: 12px;
         }
-        
+
         .btn-edit:hover {
             background: #218838;
         }
-        
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        
+
         thead {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-        
+
         th {
             padding: 15px;
             text-align: left;
             font-weight: 600;
         }
-        
+
         td {
             padding: 12px 15px;
             border-bottom: 1px solid #eee;
         }
-        
+
         tr:hover {
             background-color: #f8f9fa;
         }
-        
+
         .actions {
             display: flex;
             gap: 10px;
         }
-        
+
         .specialty-badge {
             display: inline-block;
             padding: 4px 12px;
@@ -132,27 +133,27 @@
             font-size: 0.85em;
             font-weight: 600;
         }
-        
+
         .specialty-ALL {
             background: #667eea;
             color: white;
         }
-        
+
         .specialty-WEEKDAY {
             background: #e3f2fd;
             color: #1976d2;
         }
-        
+
         .specialty-SUNDAY {
             background: #fff3e0;
             color: #f57c00;
         }
-        
+
         .specialty-DAWN {
             background: #f3e5f5;
             color: #7b1fa2;
         }
-        
+
         .empty-message {
             text-align: center;
             padding: 40px;
@@ -161,16 +162,17 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>멤버 관리</h1>
-        
+
         <div class="header-actions">
             <a th:href="@{/schedule/input}" class="btn btn-secondary">스케줄 입력</a>
             <a th:href="@{/schedule/view}" class="btn btn-secondary">스케줄 조회</a>
             <a th:href="@{/member/add}" class="btn btn-primary">+ 멤버 추가</a>
         </div>
-        
+
         <table>
             <thead>
                 <tr>
@@ -189,16 +191,19 @@
                     <td th:text="${iterStat.count}"></td>
                     <td th:text="${member.name}"></td>
                     <td>
-                        <span th:class="'specialty-badge specialty-' + ${member.specialty.name()}" 
-                              th:text="${member.specialty.name()}"></span>
+                        <span th:class="'specialty-badge specialty-' + ${member.specialty.name()}"
+                            th:text="${member.specialty.name()}"></span>
                     </td>
                     <td th:text="${member.lastMonthCount}"></td>
                     <td>
                         <div class="actions">
+                            <a th:href="@{/member/availability/{id}(id=${member.id})}" class="btn btn-secondary"
+                                style="padding: 5px 15px; font-size: 12px;">⚙️ 요일별 설정</a>
                             <a th:href="@{/member/edit/{id}(id=${member.id})}" class="btn btn-edit">수정</a>
-                            <form th:action="@{/member/delete/{id}(id=${member.id})}" method="post" style="display: inline;">
-                                <button type="submit" class="btn btn-danger" 
-                                        onclick="return confirm('정말 삭제하시겠습니까?');">삭제</button>
+                            <form th:action="@{/member/delete/{id}(id=${member.id})}" method="post"
+                                style="display: inline;">
+                                <button type="submit" class="btn btn-danger"
+                                    onclick="return confirm('정말 삭제하시겠습니까?');">삭제</button>
                             </form>
                         </div>
                     </td>
@@ -207,4 +212,5 @@
         </table>
     </div>
 </body>
+
 </html>

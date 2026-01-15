@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>요일별 설정</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.8em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .day-column {
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            min-width: 100px;
+        }
+
+        .checkbox-cell {
+            text-align: center;
+        }
+
+        .checkbox-cell input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-container {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #1976d2;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #1565c0;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .worship-types {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .worship-type {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .header-actions {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+
+        .header-actions a {
+            padding: 8px 15px;
+            font-size: 13px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-block;
+            margin-left: 10px;
+            transition: all 0.3s;
+        }
+
+        .header-actions a:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header-actions">
+            <a th:href="@{/member/list}">← 멤버 목록으로</a>
+        </div>
+
+        <h1>요일별 설정</h1>
+        <p class="subtitle" th:text="'멤버: ' + ${memberName}"></p>
+
+        <div class="info-box">
+            <strong>설명:</strong>
+            각 요일별로 참여 가능한 예배 유형을 선택하세요.
+            <div class="worship-types">
+                <div class="worship-type">
+                    <span>📅 평일 예배</span>
+                </div>
+                <div class="worship-type">
+                    <span>🌅 새벽 예배</span>
+                </div>
+                <div class="worship-type">
+                    <span>✨ 주일 1부</span>
+                </div>
+                <div class="worship-type">
+                    <span>✨ 주일 2부</span>
+                </div>
+                <div class="worship-type">
+                    <span>✨ 주일 3부</span>
+                </div>
+            </div>
+        </div>
+
+        <form method="post">
+            <div th:if="${availabilityList == null or availabilityList.isEmpty()}"
+                style="padding: 20px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; color: #856404;">
+                <strong>⚠️ 알림:</strong> 요일별 설정이 없습니다. 관리자에게 문의하세요.
+            </div>
+
+            <table th:if="${availabilityList != null and !availabilityList.isEmpty()}">
+                <thead>
+                    <tr>
+                        <th>요일</th>
+                        <th class="checkbox-cell">📅 평일 예배</th>
+                        <th class="checkbox-cell">🌅 새벽 예배</th>
+                        <th class="checkbox-cell">✨ 주일 1부</th>
+                        <th class="checkbox-cell">✨ 주일 2부</th>
+                        <th class="checkbox-cell">✨ 주일 3부</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="availability : ${availabilityList}">
+                        <td class="day-column" th:text="${daysOfWeek[availability.dayOfWeek - 1]}"></td>
+                        <td class="checkbox-cell">
+                            <input type="checkbox" th:id="|day${availability.dayOfWeek}_weekday|"
+                                th:name="|day${availability.dayOfWeek}_weekday|"
+                                th:checked="${availability.weekdayEnabled}">
+                        </td>
+                        <td class="checkbox-cell">
+                            <input type="checkbox" th:id="|day${availability.dayOfWeek}_dawn|"
+                                th:name="|day${availability.dayOfWeek}_dawn|" th:checked="${availability.dawnEnabled}">
+                        </td>
+                        <td class="checkbox-cell">
+                            <input type="checkbox" th:id="|day${availability.dayOfWeek}_sunday1|"
+                                th:name="|day${availability.dayOfWeek}_sunday1|"
+                                th:checked="${availability.sunday1Enabled}">
+                        </td>
+                        <td class="checkbox-cell">
+                            <input type="checkbox" th:id="|day${availability.dayOfWeek}_sunday2|"
+                                th:name="|day${availability.dayOfWeek}_sunday2|"
+                                th:checked="${availability.sunday2Enabled}">
+                        </td>
+                        <td class="checkbox-cell">
+                            <input type="checkbox" th:id="|day${availability.dayOfWeek}_sunday3|"
+                                th:name="|day${availability.dayOfWeek}_sunday3|"
+                                th:checked="${availability.sunday3Enabled}">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="btn-container">
+                <button type="submit" class="btn btn-primary">저장</button>
+                <a th:href="@{/member/list}" class="btn btn-secondary">취소</a>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>

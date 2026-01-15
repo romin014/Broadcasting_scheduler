@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.broadcasting_scheduler.member.dto.MemberRequestDto;
 import com.example.broadcasting_scheduler.member.dto.MemberResponseDto;
@@ -50,7 +51,7 @@ public class MemberController {
         MemberRequestDto requestDto = new MemberRequestDto();
         requestDto.setName(member.getName());
         requestDto.setSpecialty(member.getSpecialty());
-        
+
         model.addAttribute("member", requestDto);
         model.addAttribute("memberId", id);
         model.addAttribute("specialties", Specialty.values());
@@ -66,6 +67,25 @@ public class MemberController {
     @PostMapping("/delete/{id}")
     public String deleteMember(@PathVariable Long id) {
         memberService.deleteMember(id);
+        return "redirect:/member/list";
+    }
+
+    @GetMapping("/availability/{id}")
+    public String availabilityPage(@PathVariable Long id, Model model) {
+        MemberResponseDto member = memberService.getMemberById(id);
+        var availabilityList = memberService.getMemberAvailability(id);
+
+        model.addAttribute("memberId", id);
+        model.addAttribute("memberName", member.getName());
+        model.addAttribute("availabilityList", availabilityList);
+        model.addAttribute("daysOfWeek", new String[] { "월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일" });
+        return "member/availability";
+    }
+
+    @PostMapping("/availability/{id}")
+    public String updateAvailability(@PathVariable Long id,
+            @RequestParam(required = false) java.util.Map<String, String> params) {
+        memberService.saveMemberAvailability(id, params);
         return "redirect:/member/list";
     }
 }
