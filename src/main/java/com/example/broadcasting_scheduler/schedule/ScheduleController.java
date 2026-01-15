@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.example.broadcasting_scheduler.member.MemberService;
 import com.example.broadcasting_scheduler.member.dto.MemberResponseDto;
 import com.example.broadcasting_scheduler.schedule.dto.ScheduleResponseDto;
+import com.example.broadcasting_scheduler.schedule.DayOfWeekSetting;
+import com.example.broadcasting_scheduler.schedule.DayOfWeekSettingRepository;
 
 @Controller
 @RequestMapping("/schedule")
@@ -24,10 +26,12 @@ public class ScheduleController {
 
     private final ScheduleService scheduleService;
     private final MemberService memberService;
+    private final DayOfWeekSettingRepository dayOfWeekSettingRepository;
 
-    public ScheduleController(ScheduleService scheduleService, MemberService memberService) {
+    public ScheduleController(ScheduleService scheduleService, MemberService memberService, DayOfWeekSettingRepository dayOfWeekSettingRepository) {
         this.scheduleService = scheduleService;
         this.memberService = memberService;
+        this.dayOfWeekSettingRepository = dayOfWeekSettingRepository;
     }
 
     @GetMapping("/input")
@@ -42,10 +46,29 @@ public class ScheduleController {
         }
 
         List<MemberResponseDto> members = memberService.getAllMembers();
+        
+        // 요일별 설정 불러오기 (기본값: 모두 활성화)
+        Map<Integer, DayOfWeekSetting> daySettings = new HashMap<>();
+        Map<Integer, String> dayNames = new HashMap<>();
+        dayNames.put(1, "월요일");
+        dayNames.put(2, "화요일");
+        dayNames.put(3, "수요일");
+        dayNames.put(4, "목요일");
+        dayNames.put(5, "금요일");
+        dayNames.put(6, "토요일");
+        
+        for (int day = 1; day <= 6; day++) {
+            DayOfWeekSetting setting = dayOfWeekSettingRepository.findByDayOfWeek(day)
+                .orElse(new DayOfWeekSetting(day, true, true));
+            daySettings.put(day, setting);
+        }
+        
         model.addAttribute("members", members);
         model.addAttribute("year", year);
         model.addAttribute("month", month);
         model.addAttribute("worshipTypes", WorshipType.values());
+        model.addAttribute("daySettings", daySettings);
+        model.addAttribute("dayNames", dayNames);
 
         return "schedule/input";
     }
@@ -72,8 +95,20 @@ public class ScheduleController {
             memberAvailability.put(member.getId(), availability);
         }
 
+        // 요일별 설정 추출 (1=월요일, 2=화요일, ..., 6=토요일, 일요일은 주일 예배만)
+        Map<Integer, Map<String, Boolean>> dayOfWeekSettings = new HashMap<>();
+        for (int day = 1; day <= 6; day++) { // 월요일부터 토요일까지
+            Map<String, Boolean> settings = new HashMap<>();
+            String weekdayKey = "day_" + day + "_weekday";
+            String dawnKey = "day_" + day + "_dawn";
+            
+            settings.put("weekday", "on".equals(allParams.get(weekdayKey)));
+            settings.put("dawn", "on".equals(allParams.get(dawnKey)));
+            dayOfWeekSettings.put(day, settings);
+        }
+
         // 스케줄 생성
-        scheduleService.generateMonthlySchedule(year, month, memberAvailability);
+        scheduleService.generateMonthlySchedule(year, month, memberAvailability, dayOfWeekSettings);
 
         return "redirect:/schedule/view?year=" + year + "&month=" + month;
     }

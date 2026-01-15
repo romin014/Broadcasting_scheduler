@@ -160,6 +160,33 @@
             <label>월:</label>
             <input type="number" name="month" th:value="${month}" min="1" max="12" required>
             
+            <h2 style="margin-top: 30px; margin-bottom: 15px; color: #555; font-size: 1.3em;">요일별 예배 설정</h2>
+            <table style="margin-bottom: 30px;">
+                <thead>
+                    <tr>
+                        <th>요일</th>
+                        <th class="checkbox-cell">평일 예배</th>
+                        <th class="checkbox-cell">새벽 예배</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="day : ${#numbers.sequence(1, 6)}">
+                        <td class="member-name" th:text="${dayNames.get(day)}"></td>
+                        <td class="checkbox-cell">
+                            <input type="checkbox" 
+                                   th:name="'day_' + ${day} + '_weekday'"
+                                   th:checked="${daySettings.get(day).weekdayEnabled}">
+                        </td>
+                        <td class="checkbox-cell">
+                            <input type="checkbox" 
+                                   th:name="'day_' + ${day} + '_dawn'"
+                                   th:checked="${daySettings.get(day).dawnEnabled}">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h2 style="margin-top: 30px; margin-bottom: 15px; color: #555; font-size: 1.3em;">멤버별 가용성 설정</h2>
             <table>
                 <thead>
                     <tr>

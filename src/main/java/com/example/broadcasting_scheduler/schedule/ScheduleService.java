@@ -23,19 +23,22 @@ public class ScheduleService {
     private final MemberRepository memberRepository;
     private final ScheduleRepository scheduleRepository;
     private final StatsService statsService;
+    private final DayOfWeekSettingRepository dayOfWeekSettingRepository;
 
     public ScheduleService(MemberRepository memberRepository,
             ScheduleRepository scheduleRepository,
-            StatsService statsService) {
+            StatsService statsService,
+            DayOfWeekSettingRepository dayOfWeekSettingRepository) {
         this.memberRepository = memberRepository;
         this.scheduleRepository = scheduleRepository;
         this.statsService = statsService;
+        this.dayOfWeekSettingRepository = dayOfWeekSettingRepository;
     }
 
     /**
      * 기존 스케줄 삭제 후 새로 생성
      */
-    public void generateMonthlySchedule(int year, int month, Map<Long, Map<String, Boolean>> memberAvailability) {
+    public void generateMonthlySchedule(int year, int month, Map<Long, Map<String, Boolean>> memberAvailability, Map<Integer, Map<String, Boolean>> dayOfWeekSettings) {
         // 전월 통계 업데이트
         statsService.updateLastMonthCounts(year, month);
 
@@ -80,6 +83,22 @@ public class ScheduleService {
             currentCount.put(m.getId(), 0);
         }
 
+        // 요일별 설정 저장
+        if (dayOfWeekSettings != null) {
+            for (Map.Entry<Integer, Map<String, Boolean>> entry : dayOfWeekSettings.entrySet()) {
+                int dayOfWeek = entry.getKey();
+                Map<String, Boolean> settings = entry.getValue();
+                boolean weekdayEnabled = settings.getOrDefault("weekday", true);
+                boolean dawnEnabled = settings.getOrDefault("dawn", true);
+                
+                DayOfWeekSetting setting = dayOfWeekSettingRepository.findByDayOfWeek(dayOfWeek)
+                    .orElse(new DayOfWeekSetting(dayOfWeek, weekdayEnabled, dawnEnabled));
+                setting.setWeekdayEnabled(weekdayEnabled);
+                setting.setDawnEnabled(dawnEnabled);
+                dayOfWeekSettingRepository.save(setting);
+            }
+        }
+
         // 스케줄 생성
         for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
             for (WorshipType worshipType : getWorshipTypes(date)) {
@@ -115,10 +134,27 @@ public class ScheduleService {
     }
 
     private List<WorshipType> getWorshipTypes(LocalDate date) {
-        if (date.getDayOfWeek() == DayOfWeek.SUNDAY) {
+        DayOfWeek dayOfWeek = date.getDayOfWeek();
+        int dayOfWeekValue = dayOfWeek.getValue(); // 1=월요일, 7=일요일
+        
+        // 일요일은 주일 예배만
+        if (dayOfWeekValue == 7) {
             return List.of(WorshipType.SUNDAY);
         }
-        return List.of(WorshipType.WEEKDAY, WorshipType.DAWN);
+        
+        // 요일별 설정 확인
+        DayOfWeekSetting setting = dayOfWeekSettingRepository.findByDayOfWeek(dayOfWeekValue)
+            .orElse(new DayOfWeekSetting(dayOfWeekValue, true, true)); // 기본값: 모두 활성화
+        
+        List<WorshipType> types = new java.util.ArrayList<>();
+        if (setting.isWeekdayEnabled()) {
+            types.add(WorshipType.WEEKDAY);
+        }
+        if (setting.isDawnEnabled()) {
+            types.add(WorshipType.DAWN);
+        }
+        
+        return types;
     }
 
     private Member selectMember(
