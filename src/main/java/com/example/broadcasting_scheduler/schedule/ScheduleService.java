@@ -125,7 +125,7 @@ public class ScheduleService {
         // 스케줄 생성
         for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
             for (WorshipType worshipType : getWorshipTypes(date)) {
-                int slots = getSlotCountFor(worshipType);
+                int slots = getSlotCountFor(worshipType, date);
                 java.util.Set<Long> selectedThisSlot = new java.util.HashSet<>();
 
                 for (int s = 0; s < slots; s++) {
@@ -198,10 +198,11 @@ public class ScheduleService {
         return types;
     }
 
-    private int getSlotCountFor(WorshipType worshipType) {
+    private int getSlotCountFor(WorshipType worshipType, LocalDate date) {
         switch (worshipType) {
             case WEEKDAY:
-                return 2;
+                // 토요일은 1명, 평일은 2명
+                return date.getDayOfWeek().getValue() == 6 ? 1 : 2;
             case SUNDAY_1:
                 return 2;
             case SUNDAY_2:
