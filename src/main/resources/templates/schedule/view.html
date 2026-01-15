@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>방송실 스케줄 조회</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2em;
+        }
+        
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .date-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .date-selector label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .date-selector input {
+            padding: 8px 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .btn {
+            padding: 10px 25px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #ddd;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .calendar-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        
+        .calendar-day {
+            background: white;
+            padding: 10px;
+            min-height: 120px;
+            position: relative;
+        }
+        
+        .calendar-day.other-month {
+            background: #f8f9fa;
+            color: #999;
+        }
+        
+        .day-number {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .worship-item {
+            font-size: 0.85em;
+            padding: 4px 8px;
+            margin: 3px 0;
+            border-radius: 4px;
+            background: #f0f0f0;
+        }
+        
+        .worship-weekday {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .worship-sunday {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .worship-dawn {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .empty-day {
+            color: #ccc;
+            font-style: italic;
+            font-size: 0.9em;
+        }
+        
+        .month-navigation {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .month-navigation a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            margin: 0 5px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        
+        .month-navigation a:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .current-month {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin: 0 15px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>방송실 스케줄 조회</h1>
+        
+        <div class="header-controls">
+            <div class="month-navigation">
+                <a th:href="@{/schedule/view(year=${year}, month=${month - 1})}" 
+                   th:if="${month > 1}">◀ 이전 달</a>
+                <a th:href="@{/schedule/view(year=${year - 1}, month=12)}" 
+                   th:if="${month == 1}">◀ 이전 달</a>
+                <span class="current-month" th:text="${#strings.concat(year, '년 ', month, '월')}"></span>
+                <a th:href="@{/schedule/view(year=${year}, month=${month + 1})}" 
+                   th:if="${month < 12}">다음 달 ▶</a>
+                <a th:href="@{/schedule/view(year=${year + 1}, month=1)}" 
+                   th:if="${month == 12}">다음 달 ▶</a>
+            </div>
+            
+            <div class="date-selector">
+                <form th:action="@{/schedule/view}" method="get" style="display: flex; gap: 10px; align-items: center;">
+                    <label>년도:</label>
+                    <input type="number" name="year" th:value="${year}" min="2020" max="2100" required>
+                    <label>월:</label>
+                    <input type="number" name="month" th:value="${month}" min="1" max="12" required>
+                    <button type="submit" class="btn btn-primary">조회</button>
+                </form>
+            </div>
+            
+            <a th:href="@{/schedule/input(year=${year}, month=${month})}" class="btn btn-primary">새 스케줄 생성</a>
+        </div>
+        
+        <div class="calendar">
+            <!-- 요일 헤더 -->
+            <div class="calendar-header">일</div>
+            <div class="calendar-header">월</div>
+            <div class="calendar-header">화</div>
+            <div class="calendar-header">수</div>
+            <div class="calendar-header">목</div>
+            <div class="calendar-header">금</div>
+            <div class="calendar-header">토</div>
+            
+            <!-- 달력 날짜들 -->
+            <div th:each="dateInfo : ${calendarDates}" 
+                 th:with="cls=${'calendar-day' + 
+                            (dateInfo.isCurrentMonth ? '' : ' other-month') + 
+                            (dateInfo.dayOfWeekValue == 7 ? ' sunday' : '') + 
+                            (dateInfo.dayOfWeekValue == 6 ? ' saturday' : '')}"
+                 th:class="${cls}">
+                <div class="day-number" th:text="${dateInfo.dayOfMonth}"></div>
+                
+                <div th:if="${dateInfo.isCurrentMonth and calendarData.containsKey(dateInfo.dateKey)}">
+                    <div th:each="worshipType : ${worshipTypes}"
+                         th:if="${calendarData.get(dateInfo.dateKey).containsKey(worshipType.name())}"
+                         th:class="${'worship-item worship-' + worshipType.name().toLowerCase()}">
+                        <span th:if="${worshipType.name() == 'WEEKDAY'}">평일: </span>
+                        <span th:if="${worshipType.name() == 'SUNDAY'}">주일: </span>
+                        <span th:if="${worshipType.name() == 'DAWN'}">새벽: </span>
+                        <span th:text="${calendarData.get(dateInfo.dateKey).get(worshipType.name())}"></span>
+                    </div>
+                </div>
+                <div th:if="${dateInfo.isCurrentMonth and !calendarData.containsKey(dateInfo.dateKey)}" class="empty-day">
+                    예배 없음
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>방송실 스케줄 입력</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2em;
+        }
+        
+        .date-selector {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .date-selector label {
+            margin-right: 10px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .date-selector input {
+            padding: 8px 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-right: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .member-name {
+            font-weight: 600;
+            color: #333;
+            min-width: 120px;
+        }
+        
+        .checkbox-cell {
+            text-align: center;
+            width: 100px;
+        }
+        
+        input[type="checkbox"] {
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+        
+        .btn-group {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 40px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 0 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .worship-type {
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>방송실 스케줄 입력</h1>
+        
+        <form th:action="@{/schedule/generate}" method="post" class="date-selector">
+            <label>년도:</label>
+            <input type="number" name="year" th:value="${year}" min="2020" max="2100" required>
+            
+            <label>월:</label>
+            <input type="number" name="month" th:value="${month}" min="1" max="12" required>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>이름</th>
+                        <th class="checkbox-cell">평일 예배</th>
+                        <th class="checkbox-cell">주일 예배</th>
+                        <th class="checkbox-cell">새벽 예배</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="member : ${members}">
+                        <td class="member-name" th:text="${member.name}"></td>
+                        <td class="checkbox-cell">
+                            <input type="checkbox" 
+                                   th:name="'availability_' + ${member.id} + '_weekday'"
+                                   checked>
+                        </td>
+                        <td class="checkbox-cell">
+                            <input type="checkbox" 
+                                   th:name="'availability_' + ${member.id} + '_sunday'"
+                                   checked>
+                        </td>
+                        <td class="checkbox-cell">
+                            <input type="checkbox" 
+                                   th:name="'availability_' + ${member.id} + '_dawn'"
+                                   checked>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="btn-group">
+                <button type="submit" class="btn btn-primary">스케줄 생성</button>
+                <a th:href="@{/schedule/view(year=${year}, month=${month})}" class="btn btn-secondary">기존 스케줄 보기</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
